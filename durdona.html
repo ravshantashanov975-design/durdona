@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Durdona's Mood Journey</title>
+<style>
+  :root {
+    --accent: #ff6fa5;
+    --accent-soft: #ff9fc3;
+    --accent-deep: #b8447a;
+    --bg-1: #1a0e17;
+    --bg-2: #2b1226;
+    --glass: rgba(255,255,255,0.10);
+    --glass-border: rgba(255,255,255,0.22);
+    --text: #fff6fa;
+    --text-dim: rgba(255,246,250,0.7);
+    font-family: 'Quicksand', system-ui, sans-serif;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap');
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 30% 0%, var(--bg-2), var(--bg-1) 70%);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: env(safe-area-inset-top,0) 16px env(safe-area-inset-bottom,0);
+    position: relative;
+  }
+
+  #particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .particle {
+    position: absolute;
+    font-size: 26px;
+    opacity: 0.55;
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.15));
+    will-change: transform;
+    animation: drift linear infinite;
+  }
+  @keyframes drift {
+    0%   { transform: translateY(0) translateX(0) rotate(0deg); }
+    50%  { transform: translateY(-52vh) translateX(var(--dx, 20px)) rotate(180deg); }
+    100% { transform: translateY(-105vh) translateX(0) rotate(360deg); }
+  }
+
+  .stage {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    margin: 32px auto;
+  }
+
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+    padding: 36px 26px;
+    text-align: center;
+  }
+
+  .eyebrow-emoji {
+    font-size: 46px;
+    display: block;
+    margin-bottom: 6px;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+  }
+
+  h1 {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.7rem;
+    line-height: 1.25;
+    margin: 6px 0 8px;
+    color: var(--text);
+  }
+
+  p.sub {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin: 0 0 26px;
+    line-height: 1.5;
+  }
+
+  label {
+    display: block;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin: 18px 0 8px;
+  }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 6px 8px;
+  }
+
+  input[type="text"], input[type="color"] {
+    border: none;
+    background: transparent;
+    outline: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    width: 100%;
+    padding: 10px 6px;
+  }
+  input[type="text"]::placeholder { color: rgba(255,246,250,0.4); }
+
+  input[type="color"] {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 10px;
+    cursor: pointer;
+    flex: 0 0 auto;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  input[type="color"]::-webkit-color-swatch { border: none; border-radius: 10px; }
+
+  .emoji-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .emoji-choice {
+    font-size: 1.4rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .emoji-choice:active { transform: scale(0.9); }
+  .emoji-choice.selected {
+    background: linear-gradient(160deg, var(--accent), var(--accent-deep));
+    border-color: transparent;
+    transform: scale(1.08);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  }
+
+  .btn-primary {
+    margin-top: 28px;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 18px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #2a0f1c;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn-primary:active { transform: scale(0.96); box-shadow: 0 4px 14px rgba(0,0,0,0.3); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-primary.shake { animation: shake 0.4s; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; animation: riseIn 0.55s cubic-bezier(.2,.9,.25,1); }
+  @keyframes riseIn {
+    from { opacity: 0; transform: translateY(28px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .progress-track {
+    height: 6px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.12);
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+    transition: width 0.5s cubic-bezier(.2,.9,.25,1);
+    width: 0%;
+  }
+
+  .q-count {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    letter-spacing: 0.3px;
+    margin-bottom: 14px;
+  }
+
+  .question-text {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.28rem;
+    line-height: 1.4;
+    margin: 4px 0 26px;
+  }
+
+  .choice-grid {
+    display: grid;
+    gap: 12px;
+  }
+  .choice-btn {
+    padding: 15px 16px;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.07);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  }
+  .choice-btn:active { transform: scale(0.97); }
+  .choice-btn:hover { background: rgba(255,255,255,0.13); border-color: var(--accent-soft); }
+  .choice-btn.picked {
+    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+    border-color: transparent;
+    color: #fff;
+  }
+
+  .yesno-wrap {
+    position: relative;
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    min-height: 60px;
+  }
+  .btn-yes, .btn-no {
+    flex: 1;
+    padding: 15px 10px;
+    border-radius: 16px;
+    border: none;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-yes {
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    color: #2a0f1c;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.3);
+  }
+  .btn-no {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--glass-border);
+    color: var(--text);
+    transition: none;
+  }
+  .btn-no.escaping {
+    position: fixed !important;
+    z-index: 50;
+    transition: top 0.18s ease, left 0.18s ease;
+    flex: none;
+    width: 130px;
+  }
+
+  .no-caption {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 10px;
+    min-height: 16px;
+  }
+
+  .result-emoji {
+    font-size: 64px;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .result-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.5rem;
+    margin: 0 0 10px;
+  }
+  .result-body {
+    color: var(--text-dim);
+    font-size: 0.98rem;
+    line-height: 1.6;
+    margin-bottom: 22px;
+  }
+  .result-body strong { color: var(--accent-soft); }
+
+  .swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    vertical-align: -1px;
+    margin-right: 4px;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+  }
+
+  canvas#confetti {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 40;
+  }
+
+  .btn-secondary {
+    width: 100%;
+    margin-top: 8px;
+    padding: 13px;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  #screen-game.active { max-width: 100vw; }
+  .game-wrap {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    padding: 0 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .game-hud {
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .score-pill {
+    background: rgba(255,255,255,0.09);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 8px 18px;
+    min-width: 74px;
+    flex: 0 0 auto;
+  }
+  .score-pill span {
+    display: block;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.3rem;
+    color: var(--accent-soft);
+  }
+  .score-pill small {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+  }
+  .hud-caption {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    flex: 1;
+  }
+  .game-stage {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    aspect-ratio: 3 / 4.4;
+    max-height: 72vh;
+    border-radius: 26px;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.15));
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12);
+    touch-action: none;
+  }
+  #gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  #screen-game .btn-secondary { max-width: 460px; margin-top: 14px; }
+
+  .win-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,4,8,0.75);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+    padding: 20px;
+  }
+  .win-overlay.active { display: flex; }
+  .win-card { max-width: 380px; }
+  .win-text {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text);
+    margin: 6px 0 22px;
+  }
+
+  .word-puzzle {
+    margin: 20px 0;
+    padding: 20px 14px;
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    background: rgba(255,255,255,0.07);
+  }
+  .word-clue { color: var(--text-dim); margin: 0 0 12px; }
+  .scrambled-word {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.18em;
+    color: var(--accent-soft);
+    margin: 0;
+  }
+  .word-feedback { min-height: 1.5em; color: var(--text-dim); margin: 12px 0 0; }
+  .word-feedback.correct { color: #a9f0c4; }
+  .word-feedback.incorrect { color: #ffb6c7; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .particle { animation: none; opacity: 0.25; }
+    .screen.active { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+<canvas id="confetti"></canvas>
+
+<div class="stage">
+
+  <!-- SETUP SCREEN -->
+  <section class="screen active" id="screen-setup">
+    <div class="card">
+      <span class="eyebrow-emoji" id="setupEmojiPreview">💗</span>
+      <h1>Hey Durdona, let's set the mood</h1>
+      <p class="sub">A couple of quick picks and your journey opens up, styled just for you.</p>
+
+      <label for="colorText">Your favorite color</label>
+      <div class="field-row">
+        <input type="color" id="colorPicker" value="#ff6fa5">
+        <input type="text" id="colorText" placeholder="e.g. hot pink or #ff6fa5" maxlength="30">
+      </div>
+
+      <label>Your favorite emoji</label>
+      <div class="emoji-picker" id="emojiPicker"></div>
+      <div class="field-row" style="margin-top:10px;">
+        <input type="text" id="emojiCustom" placeholder="or type your own emoji" maxlength="4">
+      </div>
+
+      <button class="btn-primary" id="startBtn">Start Journey ✨</button>
+    </div>
+  </section>
+
+  <!-- QUIZ SCREEN -->
+  <section class="screen" id="screen-quiz">
+    <div class="card">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="q-count" id="qCount">Question 1 of 4</div>
+      <div class="question-text" id="questionText"></div>
+      <div id="answerArea"></div>
+    </div>
+  </section>
+
+  <!-- RESULT SCREEN -->
+  <section class="screen" id="screen-result">
+    <div class="card">
+      <span class="result-emoji" id="resultEmoji">🌸</span>
+      <h2 class="result-title" id="resultTitle">You're glowing, Durdona!</h2>
+      <div class="result-body" id="resultBody"></div>
+      <button class="btn-primary" id="playGameBtn">Play the catching game 🎯</button>
+      <button class="btn-secondary" id="playWordGameBtn">Play the word game 🔤</button>
+      <button class="btn-secondary" id="replayBtn">Do it again</button>
+    </div>
+  </section>
+
+  <!-- GAME SCREEN -->
+  <section class="screen" id="screen-game">
+    <div class="game-wrap">
+      <div class="game-hud">
+        <div class="score-pill"><span id="scoreVal">0</span><small>/ 100</small></div>
+        <div class="hud-caption" id="gameIntroText"></div>
+      </div>
+      <div class="game-stage" id="gameStage">
+        <canvas id="gameCanvas"></canvas>
+      </div>
+      <button class="btn-secondary" id="backToResultBtn">Back to results</button>
+    </div>
+  </section>
+
+  <!-- WORD GAME SCREEN -->
+  <section class="screen" id="screen-word">
+    <div class="card">
+      <div class="q-count" id="wordProgress">Word 1 of 5</div>
+      <h2 class="result-title">Unscramble the word 🔤</h2>
+      <div class="word-puzzle">
+        <p class="word-clue" id="wordClue"></p>
+        <p class="scrambled-word" id="scrambledWord" aria-label="Scrambled word"></p>
+      </div>
+      <label for="wordAnswer">Your answer</label>
+      <div class="field-row">
+        <input type="text" id="wordAnswer" placeholder="Type the word" autocomplete="off" autocapitalize="off">
+      </div>
+      <p class="word-feedback" id="wordFeedback" aria-live="polite"></p>
+      <button class="btn-primary" id="checkWordBtn">Check answer ✨</button>
+      <button class="btn-secondary" id="nextWordBtn" hidden>Next word →</button>
+      <button class="btn-secondary" id="backFromWordBtn">Back to results</button>
+    </div>
+  </section>
+
+  <!-- WIN OVERLAY -->
+  <div class="win-overlay" id="winOverlay">
+    <div class="card win-card">
+      <span class="result-emoji" id="winEmoji">🌯</span>
+      <p class="win-text" id="winText"></p>
+      <button class="btn-primary" id="restartGameBtn">Play Again</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const NAME = "Durdona";
+  const root = document.documentElement;
+
+  /* ---------- State ---------- */
+  const state = {
+    color: "#ff6fa5",
+    emoji: "💗",
+    answers: []
+  };
+
+  /* ---------- Emoji picker setup ---------- */
+  const EMOJI_OPTIONS = ["🍫","🧸","✨","🌸","🍓","🦋","🍭","💗"];
+  const emojiPicker = document.getElementById("emojiPicker");
+  EMOJI_OPTIONS.forEach((e, i) => {
+    const btn = document.createElement("div");
+    btn.className = "emoji-choice" + (i === 7 ? " selected" : "");
+    btn.textContent = e;
+    btn.dataset.emoji = e;
+    btn.addEventListener("click", () => selectEmoji(e, btn));
+    emojiPicker.appendChild(btn);
+  });
+
+  function selectEmoji(e, el) {
+    state.emoji = e;
+    document.querySelectorAll(".emoji-choice").forEach(x => x.classList.remove("selected"));
+    if (el) el.classList.add("selected");
+    document.getElementById("emojiCustom").value = "";
+    document.getElementById("setupEmojiPreview").textContent = e;
+  }
+
+  document.getElementById("emojiCustom").addEventListener("input", (ev) => {
+    const v = ev.target.value.trim();
+    if (v) {
+      state.emoji = v;
+      document.querySelectorAll(".emoji-choice").forEach(x => x.classList.remove("selected"));
+      document.getElementById("setupEmojiPreview").textContent = v;
+    }
+  });
+
+  /* ---------- Color sync ---------- */
+  const colorPicker = document.getElementById("colorPicker");
+  const colorText = document.getElementById("colorText");
+
+  function isValidColor(str) {
+    const s = new Option().style;
+    s.color = "";
+    s.color = str;
+    return s.color !== "";
+  }
+
+  function applyTheme(colorValue) {
+    let hex = colorValue;
+    // resolve named colors / any valid CSS color to a usable set via a probe element
+    const probe = document.createElement("div");
+    probe.style.color = colorValue;
+    document.body.appendChild(probe);
+    const computed = getComputedStyle(probe).color; // rgb(...)
+    document.body.removeChild(probe);
+    const rgb = computed.match(/\d+/g).map(Number);
+    const [r, g, b] = rgb;
+
+    const toHex = (n) => n.toString(16).padStart(2, "0");
+    hex = "#" + toHex(r) + toHex(g) + toHex(b);
+
+    const lighten = (amt) => "#" + [r, g, b].map(c => toHex(Math.min(255, Math.round(c + (255 - c) * amt)))).join("");
+    const darken = (amt) => "#" + [r, g, b].map(c => toHex(Math.max(0, Math.round(c * (1 - amt))))).join("");
+
+    root.style.setProperty("--accent", hex);
+    root.style.setProperty("--accent-soft", lighten(0.35));
+    root.style.setProperty("--accent-deep", darken(0.35));
+
+    // derive a moody dark background tinted toward the chosen hue
+    root.style.setProperty("--bg-2", darken(0.72));
+    root.style.setProperty("--bg-1", darken(0.86));
+
+    colorPicker.value = hex;
+    state.color = hex;
+  }
+
+  colorPicker.addEventListener("input", (e) => applyTheme(e.target.value));
+  colorText.addEventListener("input", (e) => {
+    const v = e.target.value.trim();
+    if (v && isValidColor(v)) applyTheme(v);
+  });
+
+  applyTheme(state.color);
+
+  /* ---------- Floating particle background ---------- */
+  const particleLayer = document.getElementById("particles");
+  let particleEls = [];
+
+  function spawnParticles(emoji) {
+    particleLayer.innerHTML = "";
+    particleEls = [];
+    const count = window.innerWidth < 480 ? 14 : 22;
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement("div");
+      el.className = "particle";
+      el.textContent = emoji;
+      const size = 16 + Math.random() * 22;
+      const left = Math.random() * 100;
+      const duration = 10 + Math.random() * 12;
+      const delay = -Math.random() * duration;
+      const dx = (Math.random() * 80 - 40) + "px";
+      el.style.left = left + "vw";
+      el.style.bottom = (-10 - Math.random() * 20) + "vh";
+      el.style.fontSize = size + "px";
+      el.style.animationDuration = duration + "s";
+      el.style.animationDelay = delay + "s";
+      el.style.setProperty("--dx", dx);
+      particleLayer.appendChild(el);
+      particleEls.push(el);
+    }
+  }
+  spawnParticles(state.emoji);
+
+  /* ---------- Screen switching ---------- */
+  const screens = {
+    setup: document.getElementById("screen-setup"),
+    quiz: document.getElementById("screen-quiz"),
+    result: document.getElementById("screen-result"),
+    game: document.getElementById("screen-game"),
+    word: document.getElementById("screen-word")
+  };
+  function showScreen(name) {
+    Object.values(screens).forEach(s => s.classList.remove("active"));
+    screens[name].classList.add("active");
+  }
+
+  /* ---------- Quiz definition ---------- */
+  function buildQuestions() {
+    const e = state.emoji;
+    return [
+      {
+        text: `${NAME}, is your mood today as amazing as your favorite ${e}?`,
+        type: "choice",
+        options: ["Absolutely, 100%", "Getting there", "Needs a boost"]
+      },
+      {
+        text: `On a scale of ${e} to ${e}${e}${e}, how much pampering do you deserve right now, ${NAME}?`,
+        type: "choice",
+        options: ["A little treat", "Full spa mode", "Royal treatment"]
+      },
+      {
+        text: `${NAME}, pick your perfect way to unwind tonight:`,
+        type: "choice",
+        options: ["Cozy blanket + a show", "Face mask & music", "Dancing it out"]
+      },
+      {
+        text: `Last one, ${NAME} — do you agree that you deserve absolutely everything good today?`,
+        type: "yesno"
+      }
+    ];
+  }
+
+  let questions = [];
+  let qIndex = 0;
+
+  function startQuiz() {
+    questions = buildQuestions();
+    qIndex = 0;
+    state.answers = [];
+    showScreen("quiz");
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const q = questions[qIndex];
+    document.getElementById("qCount").textContent = `Question ${qIndex + 1} of ${questions.length}`;
+    document.getElementById("progressFill").style.width = `${(qIndex / questions.length) * 100}%`;
+    document.getElementById("questionText").textContent = q.text;
+
+    const area = document.getElementById("answerArea");
+    area.innerHTML = "";
+
+    if (q.type === "choice") {
+      const grid = document.createElement("div");
+      grid.className = "choice-grid";
+      q.options.forEach(opt => {
+        const b = document.createElement("button");
+        b.className = "choice-btn";
+        b.textContent = opt;
+        b.addEventListener("click", () => {
+          state.answers.push(opt);
+          advance();
+        });
+        grid.appendChild(b);
+      });
+      area.appendChild(grid);
+    } else if (q.type === "yesno") {
+      const wrap = document.createElement("div");
+      wrap.className = "yesno-wrap";
+      wrap.id = "yesnoWrap";
+
+      const yes = document.createElement("button");
+      yes.className = "btn-yes";
+      yes.textContent = `Yes ${state.emoji}`;
+      yes.addEventListener("click", () => {
+        state.answers.push("Yes");
+        advance();
+      });
+
+      const no = document.createElement("button");
+      no.className = "btn-no";
+      no.id = "noBtn";
+      no.textContent = "No";
+
+      wrap.appendChild(yes);
+      wrap.appendChild(no);
+      area.appendChild(wrap);
+
+      const caption = document.createElement("div");
+      caption.className = "no-caption";
+      caption.id = "noCaption";
+      caption.textContent = "";
+      area.appendChild(caption);
+
+      attachEvasiveNo(no, wrap);
+    }
+  }
+
+  function advance() {
+    qIndex++;
+    if (qIndex >= questions.length) {
+      finishQuiz();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  /* ---------- Evasive "No" button ---------- */
+  function attachEvasiveNo(noBtn, wrap) {
+    let dodges = 0;
+    const captions = [
+      "Not so fast...",
+      "Nice try 😏",
+      "Nope, can't catch this one",
+      "It's shy today",
+      "Try again!"
+    ];
+
+    function isTouchLikely() {
+      return window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
+    }
+
+    function relocate() {
+      if (!isTouchLikely()) return; // only evade on touch/mobile per spec
+      const rect = noBtn.getBoundingClientRect();
+      const w = rect.width || 130;
+      const h = rect.height || 50;
+      const margin = 16;
+      const maxX = window.innerWidth - w - margin;
+      const maxY = window.innerHeight - h - margin;
+      const x = margin + Math.random() * Math.max(0, maxX - margin);
+      const y = margin + Math.random() * Math.max(0, maxY - margin);
+
+      noBtn.classList.add("escaping");
+      noBtn.style.left = x + "px";
+      noBtn.style.top = y + "px";
+
+      dodges++;
+      const cap = document.getElementById("noCaption");
+      if (cap) cap.textContent = captions[Math.min(dodges - 1, captions.length - 1)];
+    }
+
+    // Prevent any actual activation of "No" on touch devices
+    const block = (ev) => {
+      if (isTouchLikely()) {
+        ev.preventDefault();
+        relocate();
+      }
+    };
+
+    noBtn.addEventListener("touchstart", block, { passive: false });
+    noBtn.addEventListener("pointerover", (ev) => {
+      if (ev.pointerType === "touch" || isTouchLikely()) relocate();
+    });
+    noBtn.addEventListener("pointerdown", block);
+    noBtn.addEventListener("click", (ev) => {
+      if (isTouchLikely()) {
+        ev.preventDefault();
+        relocate();
+      }
+      // on desktop (mouse, non-touch), allow click through as a graceful fallback
+      else {
+        state.answers.push("No (but we don't believe it)");
+        advance();
+      }
+    });
+
+    // Also relocate proactively if the pointer gets close, using pointermove on the wrap
+    wrap.addEventListener("pointermove", (ev) => {
+      if (!isTouchLikely()) return;
+      const rect = noBtn.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dist = Math.hypot(ev.clientX - cx, ev.clientY - cy);
+      if (dist < 70) relocate();
+    });
+  }
+
+  /* ---------- Result screen ---------- */
+  function finishQuiz() {
+    document.getElementById("progressFill").style.width = "100%";
+    const e = state.emoji;
+    document.getElementById("resultEmoji").textContent = e;
+    document.getElementById("resultTitle").textContent = `${NAME}, you officially deserve the ${e} treatment`;
+
+    const picks = state.answers.slice(0, 3).map(a => `<strong>${escapeHtml(a)}</strong>`).join(", ");
+    document.getElementById("resultBody").innerHTML =
+      `Based on everything you shared — ${picks} — the verdict is in: today is a ${e} kind of day. ` +
+      `Go treat yourself, ${NAME}. You've more than earned it. ` +
+      `<br><br><span class="swatch" style="background:${state.color}"></span>Your color, your mood, your moment.`;
+
+    showScreen("result");
+    launchConfetti();
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  /* ---------- Confetti ---------- */
+  const canvas = document.getElementById("confetti");
+  const ctx = canvas.getContext("2d");
+  let confettiPieces = [];
+  let confettiRAF = null;
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  function launchConfetti() {
+    const colors = [state.color, "#ffffff", "#ffd6e8", "#ffb6d9"];
+    confettiPieces = [];
+    const count = window.innerWidth < 480 ? 90 : 160;
+    for (let i = 0; i < count; i++) {
+      confettiPieces.push({
+        x: canvas.width / 2 + (Math.random() * 200 - 100),
+        y: canvas.height * 0.35,
+        vx: (Math.random() - 0.5) * 14,
+        vy: -Math.random() * 14 - 4,
+        size: 5 + Math.random() * 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        vr: (Math.random() - 0.5) * 12,
+        shape: Math.random() > 0.5 ? "rect" : "circle",
+        gravity: 0.32 + Math.random() * 0.15,
+        life: 0
+      });
+    }
+    if (confettiRAF) cancelAnimationFrame(confettiRAF);
+    animateConfetti();
+  }
+
+  function animateConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    confettiPieces.forEach(p => {
+      p.vy += p.gravity;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rotation += p.vr;
+      p.life++;
+      if (p.y < canvas.height + 30) alive = true;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate((p.rotation * Math.PI) / 180);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, 1 - p.life / 260);
+      if (p.shape === "rect") {
+        ctx.fillRect(-p.size / 2, -p.size / 3, p.size, p.size * 0.6);
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    });
+    if (alive) {
+      confettiRAF = requestAnimationFrame(animateConfetti);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  /* ---------- Emoji Catching mini-game ---------- */
+  const stage = document.getElementById("gameStage");
+  const gcanvas = document.getElementById("gameCanvas");
+  const gctx = gcanvas.getContext("2d");
+  const EXTRA_TREATS = ["🍬","🍭","🍩","🍓","⭐"];
+
+  const cgame = {
+    running: false,
+    score: 0,
+    target: 100,
+    basket: { x: 0, w: 84, h: 46 },
+    items: [],
+    spawnTimer: 0,
+    spawnEvery: 46,
+    speedBase: 2.2,
+    raf: null
+  };
+
+  function resizeGameCanvas() {
+    const rect = stage.getBoundingClientRect();
+    gcanvas.width = rect.width * devicePixelRatio;
+    gcanvas.height = rect.height * devicePixelRatio;
+    gcanvas.style.width = rect.width + "px";
+    gcanvas.style.height = rect.height + "px";
+    gctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    cgame.basket.x = Math.min(Math.max(cgame.basket.x, 0), rect.width - cgame.basket.w);
+  }
+  window.addEventListener("resize", () => { if (cgame.running) resizeGameCanvas(); });
+
+  function stageWidth() { return stage.getBoundingClientRect().width; }
+  function stageHeight() { return stage.getBoundingClientRect().height; }
+
+  function spawnItem() {
+    const w = stageWidth();
+    const isTreat = Math.random() < 0.35;
+    const emoji = isTreat ? EXTRA_TREATS[Math.floor(Math.random() * EXTRA_TREATS.length)] : state.emoji;
+    const size = 30 + Math.random() * 14;
+    cgame.items.push({
+      x: Math.random() * (w - size),
+      y: -size,
+      size,
+      emoji,
+      vy: cgame.speedBase + Math.random() * 2.2 + Math.min(cgame.score / 40, 3)
+    });
+  }
+
+  function drawBasket() {
+    const y = stageHeight() - cgame.basket.h - 10;
+    const x = cgame.basket.x;
+    const w = cgame.basket.w;
+    const h = cgame.basket.h;
+    gctx.save();
+    const grad = gctx.createLinearGradient(x, y, x, y + h);
+    grad.addColorStop(0, getCSS("--accent-soft"));
+    grad.addColorStop(1, getCSS("--accent-deep"));
+    gctx.fillStyle = grad;
+    gctx.beginPath();
+    gctx.moveTo(x + 6, y);
+    gctx.quadraticCurveTo(x, y + h, x + w / 2, y + h);
+    gctx.quadraticCurveTo(x + w, y + h, x + w - 6, y);
+    gctx.closePath();
+    gctx.fill();
+    gctx.strokeStyle = "rgba(255,255,255,0.5)";
+    gctx.lineWidth = 2;
+    gctx.stroke();
+    gctx.font = "22px sans-serif";
+    gctx.textAlign = "center";
+    gctx.fillText(state.emoji, x + w / 2, y - 4);
+    gctx.restore();
+  }
+
+  function getCSS(varName) {
+    return getComputedStyle(root).getPropertyValue(varName).trim() || "#ff6fa5";
+  }
+
+  function gameLoop() {
+    if (!cgame.running) return;
+    const w = stageWidth();
+    const h = stageHeight();
+    gctx.clearRect(0, 0, w, h);
+
+    cgame.spawnTimer++;
+    if (cgame.spawnTimer >= cgame.spawnEvery) {
+      cgame.spawnTimer = 0;
+      spawnItem();
+    }
+
+    const basketY = h - cgame.basket.h - 10;
+    for (let i = cgame.items.length - 1; i >= 0; i--) {
+      const it = cgame.items[i];
+      it.y += it.vy;
+
+      gctx.font = it.size + "px sans-serif";
+      gctx.textAlign = "center";
+      gctx.textBaseline = "middle";
+      gctx.fillText(it.emoji, it.x + it.size / 2, it.y + it.size / 2);
+
+      const caught =
+        it.y + it.size >= basketY &&
+        it.y <= basketY + cgame.basket.h &&
+        it.x + it.size >= cgame.basket.x &&
+        it.x <= cgame.basket.x + cgame.basket.w;
+
+      if (caught) {
+        cgame.items.splice(i, 1);
+        cgame.score++;
+        document.getElementById("scoreVal").textContent = cgame.score;
+        spawnCatchBurst(it.x + it.size / 2, basketY);
+        if (cgame.score >= cgame.target) {
+          winGame();
+          return;
+        }
+        continue;
+      }
+      if (it.y > h + 20) {
+        cgame.items.splice(i, 1);
+      }
+    }
+
+    drawBasket();
+    cgame.raf = requestAnimationFrame(gameLoop);
+  }
+
+  function spawnCatchBurst(x, y) {
+    gctx.save();
+    gctx.globalAlpha = 0.9;
+    gctx.fillStyle = getCSS("--accent-soft");
+    gctx.beginPath();
+    gctx.arc(x, y, 4, 0, Math.PI * 2);
+    gctx.fill();
+    gctx.restore();
+  }
+
+  function moveBasketTo(clientX) {
+    const rect = stage.getBoundingClientRect();
+    let x = clientX - rect.left - cgame.basket.w / 2;
+    x = Math.max(0, Math.min(x, rect.width - cgame.basket.w));
+    cgame.basket.x = x;
+  }
+
+  stage.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    if (e.touches[0]) moveBasketTo(e.touches[0].clientX);
+  }, { passive: false });
+  stage.addEventListener("touchstart", (e) => {
+    if (e.touches[0]) moveBasketTo(e.touches[0].clientX);
+  }, { passive: true });
+  stage.addEventListener("mousemove", (e) => moveBasketTo(e.clientX));
+
+  function startGame() {
+    cgame.running = true;
+    cgame.score = 0;
+    cgame.items = [];
+    cgame.spawnTimer = 0;
+    document.getElementById("scoreVal").textContent = "0";
+    document.getElementById("gameIntroText").textContent =
+      `Drag to move the basket, ${NAME} — catch ${state.emoji} to reach 100!`;
+    document.getElementById("winOverlay").classList.remove("active");
+    resizeGameCanvas();
+    cgame.basket.x = (stageWidth() - cgame.basket.w) / 2;
+    if (cgame.raf) cancelAnimationFrame(cgame.raf);
+    gameLoop();
+  }
+
+  function stopGame() {
+    cgame.running = false;
+    if (cgame.raf) cancelAnimationFrame(cgame.raf);
+  }
+
+  function winGame() {
+    stopGame();
+    document.getElementById("winEmoji").textContent = "🌯";
+    document.getElementById("winText").textContent =
+      `Tabriklaymiz, ${NAME}! Sen 100 ta ball yig'ib, bitta MAZALI LAVASH yutib olding! 🌯🎉`;
+    document.getElementById("winOverlay").classList.add("active");
+    launchConfetti();
+  }
+
+  document.getElementById("playGameBtn").addEventListener("click", () => {
+    showScreen("game");
+    startGame();
+  });
+  document.getElementById("playWordGameBtn").addEventListener("click", () => {
+    showScreen("word");
+    startWordGame();
+  });
+  document.getElementById("backToResultBtn").addEventListener("click", () => {
+    stopGame();
+    showScreen("result");
+  });
+  document.getElementById("restartGameBtn").addEventListener("click", () => {
+    document.getElementById("winOverlay").classList.remove("active");
+    startGame();
+  });
+
+  /* ---------- Word scramble mini-game ---------- */
+  const WORD_ROUNDS = [
+    { word: "smile", clue: "Something you wear when you feel happy 😊" },
+    { word: "flower", clue: "A colorful plant that can brighten a room 🌸" },
+    { word: "treat", clue: "A little reward just for you 🍬" },
+    { word: "sparkle", clue: "A tiny flash of light ✨" },
+    { word: "lovely", clue: "Another word for beautiful and delightful 💗" }
+  ];
+  let wordOrder = [];
+  let wordIndex = 0;
+  let wordScore = 0;
+  let wordAnswered = false;
+
+  function scrambleWord(word) {
+    const letters = word.split("");
+    for (let i = letters.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [letters[i], letters[j]] = [letters[j], letters[i]];
+    }
+    if (letters.join("") === word) {
+      letters.push(letters.shift());
+    }
+    return letters.join("").toUpperCase();
+  }
+
+  function startWordGame() {
+    wordOrder = WORD_ROUNDS.map((_, index) => index).sort(() => Math.random() - 0.5);
+    wordIndex = 0;
+    wordScore = 0;
+    renderWordRound();
+  }
+
+  function renderWordRound() {
+    const round = WORD_ROUNDS[wordOrder[wordIndex]];
+    document.getElementById("wordProgress").textContent = `Word ${wordIndex + 1} of ${WORD_ROUNDS.length} · ${wordScore} solved`;
+    document.getElementById("wordClue").textContent = round.clue;
+    document.getElementById("scrambledWord").textContent = scrambleWord(round.word);
+    document.getElementById("wordAnswer").value = "";
+    document.getElementById("wordFeedback").textContent = "";
+    document.getElementById("wordFeedback").className = "word-feedback";
+    document.getElementById("wordAnswer").disabled = false;
+    document.getElementById("checkWordBtn").hidden = false;
+    document.getElementById("nextWordBtn").hidden = true;
+    wordAnswered = false;
+    document.getElementById("wordAnswer").focus({ preventScroll: true });
+  }
+
+  function checkWordAnswer() {
+    if (wordAnswered) return;
+    const answer = document.getElementById("wordAnswer").value.trim().toLowerCase();
+    const round = WORD_ROUNDS[wordOrder[wordIndex]];
+    const feedback = document.getElementById("wordFeedback");
+    if (answer === round.word) {
+      wordAnswered = true;
+      wordScore++;
+      feedback.textContent = "That's right! Lovely work 💖";
+      feedback.classList.add("correct");
+      document.getElementById("wordAnswer").disabled = true;
+      document.getElementById("checkWordBtn").hidden = true;
+      document.getElementById("nextWordBtn").hidden = false;
+      document.getElementById("nextWordBtn").textContent = wordIndex === WORD_ROUNDS.length - 1 ? "See your score 🎉" : "Next word →";
+    } else {
+      feedback.textContent = answer ? "Not quite—try rearranging the letters!" : "Type your guess first.";
+      feedback.classList.add("incorrect");
+    }
+  }
+
+  document.getElementById("checkWordBtn").addEventListener("click", checkWordAnswer);
+  document.getElementById("wordAnswer").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") checkWordAnswer();
+  });
+  document.getElementById("nextWordBtn").addEventListener("click", () => {
+    if (wordIndex < WORD_ROUNDS.length - 1) {
+      wordIndex++;
+      renderWordRound();
+      return;
+    }
+    document.getElementById("wordProgress").textContent = `Game complete · ${wordScore} of ${WORD_ROUNDS.length} solved`;
+    document.getElementById("wordClue").textContent = `You did great, ${NAME}!`;
+    document.getElementById("scrambledWord").textContent = `${wordScore}/${WORD_ROUNDS.length} 🌟`;
+    document.getElementById("wordAnswer").disabled = true;
+    document.getElementById("wordFeedback").textContent = "Play again from the results screen whenever you like.";
+    document.getElementById("wordFeedback").className = "word-feedback correct";
+    document.getElementById("nextWordBtn").hidden = true;
+  });
+  document.getElementById("backFromWordBtn").addEventListener("click", () => showScreen("result"));
+
+  /* ---------- Wire up buttons ---------- */
+  document.getElementById("startBtn").addEventListener("click", () => {
+    if (!state.emoji) {
+      const btn = document.getElementById("startBtn");
+      btn.classList.add("shake");
+      setTimeout(() => btn.classList.remove("shake"), 400);
+      return;
+    }
+    spawnParticles(state.emoji);
+    startQuiz();
+  });
+
+  document.getElementById("replayBtn").addEventListener("click", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    showScreen("setup");
+  });
+
+})();
+</script>
+</body>
+</html>
